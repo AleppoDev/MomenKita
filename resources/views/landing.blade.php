@@ -24,14 +24,19 @@
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ asset('css/app.css') }}">
 </head>
 <body>
 
 <header class="hero">
+    @include('partials.sprig', ['class' => 'sprig--hero-left'])
+    @include('partials.sprig', ['class' => 'sprig--hero-right'])
+
+    <div class="petals" data-petals aria-hidden="true"></div>
+
     <div class="hero__inner">
-        <p class="hero__eyebrow" data-enter="1">Walimatulurus</p>
+        <p class="hero__intro" data-enter="1">Dengan penuh kesyukuran, kami menjemput anda</p>
 
         <h1 class="hero__names">
             <span data-enter="2" style="display:block">{{ $bride }}</span>
@@ -39,11 +44,11 @@
             <span data-enter="4" style="display:block">{{ $groom }}</span>
         </h1>
 
-        <div class="hero__rule"></div>
-
         <div data-enter="5">
+            @include('partials.divider')
+
             @if ($date)
-                <p class="hero__meta"><span>{{ $date }}</span></p>
+                <p class="hero__meta"><strong>{{ $date }}</strong></p>
             @endif
 
             @if ($venue)
@@ -56,35 +61,35 @@
         </div>
     </div>
 
-    <a class="hero__scroll" href="#rakam">Tatal</a>
+    <a class="hero__scroll" href="#rakam">Tatal ke bawah</a>
 </header>
 
 @if ($date || $venue || $hashtag)
     <section class="section">
         <div class="page">
-            <div class="details">
+            <div class="vows" data-reveal>
                 @if ($date)
-                    <article class="detail" data-reveal>
-                        <p class="detail__label">Tarikh</p>
-                        <p class="detail__value">{{ $date }}</p>
-                    </article>
+                    <div class="vows__item">
+                        <span class="vows__label">Tarikh</span>
+                        <p class="vows__value">{{ $date }}</p>
+                    </div>
                 @endif
 
                 @if ($venue)
-                    <article class="detail" data-reveal data-reveal-delay="1">
-                        <p class="detail__label">Lokasi</p>
-                        <p class="detail__value">{{ $venue }}</p>
+                    <div class="vows__item">
+                        <span class="vows__label">Bertempat di</span>
+                        <p class="vows__value">{{ $venue }}</p>
                         @if ($address)
-                            <p class="detail__sub">{{ $address }}</p>
+                            <p class="vows__sub">{{ $address }}</p>
                         @endif
-                    </article>
+                    </div>
                 @endif
 
                 @if ($hashtag)
-                    <article class="detail" data-reveal data-reveal-delay="2">
-                        <p class="detail__label">Hashtag</p>
-                        <p class="detail__value">{{ $hashtag }}</p>
-                    </article>
+                    <div class="vows__item">
+                        <span class="vows__label">Kongsikan dengan</span>
+                        <p class="vows__value">{{ $hashtag }}</p>
+                    </div>
                 @endif
             </div>
         </div>
@@ -94,11 +99,11 @@
 <section class="section section--tint" id="rakam">
     <div class="page">
         <div class="section__head" data-reveal>
-            <p class="section__eyebrow">Rakam momen</p>
             <h2 class="section__title">Ambil gambar, terus masuk galeri</h2>
             @if ($cameraNote)
                 <p class="section__lead">{{ $cameraNote }}</p>
             @endif
+            @include('partials.divider', ['class' => 'divider--section'])
         </div>
 
         <div class="capture" data-capture data-reveal data-reveal-delay="1">
@@ -125,17 +130,17 @@
 
             <div class="capture__fields">
                 <label class="field">
-                    <span class="field__label">Nama anda (pilihan)</span>
+                    <span class="field__label">Nama anda, kalau sudi</span>
                     <input type="text" class="field__input" data-name maxlength="80" placeholder="Contoh: Kak Long" autocomplete="name">
                 </label>
 
                 <label class="field">
-                    <span class="field__label">Ucapan (pilihan)</span>
-                    <textarea class="field__textarea" data-caption maxlength="500" placeholder="Tulis doa atau ucapan ringkas…"></textarea>
+                    <span class="field__label">Doa atau ucapan</span>
+                    <textarea class="field__textarea" data-caption maxlength="500" placeholder="Tulis sepatah dua untuk pengantin…"></textarea>
                 </label>
             </div>
 
-            <p class="capture__status" data-status></p>
+            <p class="capture__status" data-status role="status" aria-live="polite"></p>
             <div class="capture__bar" data-bar><span></span></div>
 
             <div class="queue" data-queue>
@@ -154,7 +159,6 @@
 <section class="section" data-gallery>
     <div class="page">
         <div class="section__head" data-reveal>
-            <p class="section__eyebrow">Galeri langsung</p>
             <h2 class="section__title">Momen dari mata tetamu</h2>
         </div>
 
@@ -191,7 +195,7 @@
         </div>
 
         <div class="gallery__empty" data-empty @if ($photoCount > 0) hidden @endif>
-            <p>Galeri masih kosong. Jadilah orang pertama yang kongsi momen!</p>
+            <p>Galeri masih menunggu momen pertama. Jadilah orang yang memulakannya.</p>
         </div>
 
         <div class="gallery__more">
@@ -202,6 +206,8 @@
 
 <footer class="footer">
     <div class="page">
+        @include('partials.sprig', ['class' => 'sprig--footer'])
+
         @if ($hashtag)
             <p class="footer__hashtag">{{ $hashtag }}</p>
         @endif

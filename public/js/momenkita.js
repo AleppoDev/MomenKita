@@ -50,17 +50,31 @@
     }
   }
 
-  /* --------------------------------------------------- pendedahan menatal */
+  /* ------------------------------------------------------------- motion */
 
-  function setupReveal() {
+  function prefersReducedMotion() {
+    return !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  }
+
+  function revealAll() {
     var targets = document.querySelectorAll('[data-reveal]');
 
+    Array.prototype.forEach.call(targets, function (node) {
+      node.classList.add('is-visible');
+    });
+  }
+
+  /**
+   * Kandungan kelihatan sepenuhnya tanpa JavaScript. Kelas `js-motion` hanya
+   * ditambah apabila pelayar benar-benar boleh memerhati tatalan, jadi tiada
+   * seksyen yang tersembunyi kekal pada pelayar lama atau perender headless.
+   */
+  function setupMotion() {
     if (!('IntersectionObserver' in window)) {
-      Array.prototype.forEach.call(targets, function (node) {
-        node.classList.add('is-visible');
-      });
       return;
     }
+
+    document.documentElement.classList.add('js-motion');
 
     var observer = new IntersectionObserver(function (entries) {
       entries.forEach(function (entry) {
@@ -71,9 +85,53 @@
       });
     }, { rootMargin: '0px 0px -12% 0px', threshold: 0.08 });
 
-    Array.prototype.forEach.call(targets, function (node) {
+    Array.prototype.forEach.call(document.querySelectorAll('[data-reveal]'), function (node) {
       observer.observe(node);
     });
+
+    // Jaring keselamatan: kalau pemerhati tidak pernah menyala kerana tab
+    // tersembunyi atau tangkapan skrin automatik, dedahkan semuanya.
+    window.setTimeout(revealAll, 2500);
+  }
+
+  /** Kelopak bunga melur yang hanyut perlahan di belakang tajuk. */
+  function setupPetals() {
+    var field = el('[data-petals]');
+
+    if (!field || prefersReducedMotion()) {
+      return;
+    }
+
+    var count = window.innerWidth < 700 ? 9 : 16;
+    var tints = [
+      'rgba(168, 130, 63, 0.45)',
+      'rgba(194, 169, 120, 0.5)',
+      'rgba(90, 107, 87, 0.26)',
+      'rgba(255, 255, 255, 0.62)'
+    ];
+
+    var fragment = document.createDocumentFragment();
+
+    for (var i = 0; i < count; i++) {
+      var petal = document.createElement('span');
+      petal.className = 'petal';
+
+      var style = petal.style;
+      style.setProperty('--petal-x', (Math.random() * 100).toFixed(2) + '%');
+      style.setProperty('--petal-size', (7 + Math.random() * 9).toFixed(1) + 'px');
+      style.setProperty('--petal-duration', (12 + Math.random() * 12).toFixed(1) + 's');
+      // Lengah negatif supaya kelopak sudah berada di pertengahan turun
+      // sebaik halaman dibuka, bukan semuanya bermula serentak dari atas.
+      style.setProperty('--petal-delay', (-Math.random() * 20).toFixed(1) + 's');
+      style.setProperty('--petal-drift', (Math.random() * 160 - 80).toFixed(0) + 'px');
+      style.setProperty('--petal-spin', (180 + Math.random() * 420).toFixed(0) + 'deg');
+      style.setProperty('--petal-opacity', (0.3 + Math.random() * 0.4).toFixed(2));
+      style.setProperty('--petal-tint', tints[i % tints.length]);
+
+      fragment.appendChild(petal);
+    }
+
+    field.appendChild(fragment);
   }
 
   /* ------------------------------------------------------- mampatan gambar */
@@ -509,7 +567,9 @@
     this.poll();
   }
 
-  Gallery.prototype.card = function (photo) {
+  /** `fresh` menandakan gambar yang baru tiba semasa majlis, supaya hanya
+   *  gambar itu diperkenalkan dengan animasi dan bukan seluruh galeri. */
+  Gallery.prototype.card = function (photo, fresh) {
     var ratio = photo.width && photo.height ? (photo.height / photo.width) : 1.25;
     var caption = '';
 
@@ -522,7 +582,8 @@
     }
 
     return (
-      '<figure class="shot" data-id="' + photo.id + '" data-full="' + escapeHtml(photo.original) + '"' +
+      '<figure class="shot' + (fresh ? ' shot--fresh' : '') + '"' +
+      ' data-id="' + photo.id + '" data-full="' + escapeHtml(photo.original) + '"' +
       ' data-by="' + escapeHtml(photo.name || '') + '">' +
       '<img src="' + escapeHtml(photo.thumb) + '" alt="Momen dirakam oleh ' + escapeHtml(photo.name || 'tetamu') + '"' +
       ' loading="lazy" style="aspect-ratio:1/' + ratio.toFixed(3) + '">' +
@@ -537,7 +598,7 @@
     }
 
     this.seen[photo.id] = true;
-    this.grid.insertAdjacentHTML('afterbegin', this.card(photo));
+    this.grid.insertAdjacentHTML('afterbegin', this.card(photo, true));
     this.newestId = Math.max(this.newestId, photo.id);
 
     if (this.empty) {
@@ -553,7 +614,7 @@
     }
 
     this.seen[photo.id] = true;
-    this.grid.insertAdjacentHTML('beforeend', this.card(photo));
+    this.grid.insertAdjacentHTML('beforeend', this.card(photo, false));
     this.oldestId = photo.id;
   };
 
@@ -676,7 +737,8 @@
   /* --------------------------------------------------------------- mula */
 
   document.addEventListener('DOMContentLoaded', function () {
-    setupReveal();
+    setupMotion();
+    setupPetals();
 
     var galleryRoot = el('[data-gallery]');
     var gallery = galleryRoot ? new Gallery(galleryRoot) : null;
