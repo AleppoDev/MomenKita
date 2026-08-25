@@ -188,6 +188,112 @@ a { color: inherit; }
   }
 }
 
+/* --- Songket ------------------------------------------------------------ */
+
+/* Hanya pembawa <defs>; tidak pernah dilihat sendiri. */
+.songket-defs { position: absolute; width: 0; height: 0; overflow: hidden; }
+
+/* Birai pucuk rebung — segi tiga bersarang merentas lebar halaman. */
+.band {
+  display: block;
+  width: 100%;
+  height: 24px;
+  color: var(--gold);
+  opacity: 0.42;
+  pointer-events: none;
+}
+
+/* Hiasan berpusat: birai membingkai sesuatu, ia bukan pita di tepi skrin. */
+.band--ornament {
+  width: min(280px, 62%);
+  margin: 0 auto 1.8rem;
+  opacity: 0.38;
+}
+
+/* Bunga tabur, ditabur perlahan di belakang keseluruhan hero. */
+.weave {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  color: var(--gold);
+  opacity: 0.09;
+  pointer-events: none;
+}
+
+/* --- Potret bergerbang -------------------------------------------------- */
+
+/* Bentuk gerbang pelamin. Jejari melintang 50% lebar dan menegak 37.5%
+   tinggi menghasilkan separuh bulatan tepat pada kotak 3:4. */
+.portrait {
+  position: relative;
+  width: min(300px, 62vw);
+  margin: 0 auto 2.4rem;
+  padding: 10px;
+  border: 1px solid var(--hairline);
+  border-radius: 50% 50% 6px 6px / 37.5% 37.5% 6px 6px;
+}
+
+/* Garis emas kedua di dalam, seperti birai kain berlapis. */
+.portrait::before {
+  content: "";
+  position: absolute;
+  inset: 4px;
+  border: 1px solid var(--hairline);
+  border-radius: inherit;
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+.portrait__frame {
+  position: relative;
+  aspect-ratio: 3 / 4;
+  overflow: hidden;
+  border-radius: 50% 50% 4px 4px / 37.5% 37.5% 4px 4px;
+  background: var(--ivory-deep);
+}
+
+.portrait__frame img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  /* Sumbernya banyak langit dan pasangan duduk rendah; zum ringan pada
+     bahagian bawah membawa mereka ke tengah gerbang. */
+  transform: scale(1.16);
+  transform-origin: center 72%;
+}
+
+/* Kuntum kecil bertenggek di kemuncak gerbang. */
+.portrait__crown {
+  position: absolute;
+  top: -13px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 26px;
+  height: 26px;
+  color: var(--gold);
+  background: var(--ivory);
+  border-radius: 50%;
+  padding: 2px;
+}
+
+/* Ranting mengapit pangkal gerbang. */
+.portrait__sprig {
+  position: absolute;
+  bottom: -1.6rem;
+  width: 92px;
+  opacity: 0.72;
+}
+
+.portrait__sprig--left { left: -4.4rem; transform: rotate(-20deg); }
+.portrait__sprig--right { right: -4.4rem; transform: scaleX(-1) rotate(-20deg); }
+
+@media (max-width: 560px) {
+  .portrait__sprig { width: 62px; bottom: -1rem; }
+  .portrait__sprig--left { left: -2.6rem; }
+  .portrait__sprig--right { right: -2.6rem; }
+}
+
 /* --- Butang ------------------------------------------------------------- */
 
 .btn {

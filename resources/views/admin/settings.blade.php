@@ -1,3 +1,4 @@
+@php use Illuminate\Support\Facades\Storage; @endphp
 @extends('admin.layout')
 
 @section('title', 'Tetapan')
@@ -23,7 +24,7 @@
     </div>
 
     <div class="card" style="margin-bottom:2rem">
-        <form method="POST" action="{{ route('admin.settings.update') }}" class="form">
+        <form method="POST" action="{{ route('admin.settings.update') }}" class="form" enctype="multipart/form-data">
             @csrf
             @method('PUT')
 
@@ -48,6 +49,26 @@
                     @enderror
                 </div>
             @endforeach
+
+            <div class="field">
+                <label class="field__label" for="couple_photo">Gambar pengantin</label>
+
+                @if (data_get($settings, 'couple_photo'))
+                    <img src="{{ Storage::disk('public')->url(data_get($settings, 'couple_photo')) }}"
+                         alt="Gambar pengantin semasa"
+                         style="width:120px;border-radius:8px;border:1px solid var(--line);margin-bottom:0.5rem">
+                @endif
+
+                <input type="file" id="couple_photo" name="couple_photo" accept="image/*" class="field__input">
+                <span class="field__hint">
+                    Muncul dalam gerbang di halaman utama. Gambar menegak paling sesuai. Had 8 MB.
+                    Biarkan kosong untuk kekalkan gambar sedia ada.
+                </span>
+
+                @error('couple_photo')
+                    <span class="field__error">{{ $message }}</span>
+                @enderror
+            </div>
 
             <div>
                 <button type="submit" class="btn">Simpan tetapan</button>

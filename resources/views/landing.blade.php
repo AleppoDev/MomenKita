@@ -8,6 +8,9 @@
     $heroNote = data_get($settings, 'hero_note', '');
     $cameraNote = data_get($settings, 'camera_note', '');
     $title = $bride . ' & ' . $groom;
+
+    $photoPath = data_get($settings, 'couple_photo');
+    $couplePhoto = $photoPath ? Illuminate\Support\Facades\Storage::disk('public')->url($photoPath) : null;
 @endphp
 <!DOCTYPE html>
 <html lang="ms">
@@ -29,17 +32,42 @@
 </head>
 <body>
 
+@include('partials.songket')
+
 <header class="hero">
-    @include('partials.sprig', ['class' => 'sprig--hero-left'])
-    @include('partials.sprig', ['class' => 'sprig--hero-right'])
+    <svg class="weave" aria-hidden="true" focusable="false">
+        <rect width="100%" height="100%" fill="url(#songket-tabur)"/>
+    </svg>
 
     <div class="petals" data-petals aria-hidden="true"></div>
 
     <div class="hero__inner">
         <p class="hero__intro" data-enter="1">Dengan penuh kesyukuran, kami menjemput anda</p>
 
+        @if ($couplePhoto)
+            <figure class="portrait" data-enter="2">
+                <svg class="portrait__crown" viewBox="-22 -22 44 44" fill="currentColor" aria-hidden="true">
+                    <g class="divider__petals">
+                        <ellipse rx="5.6" ry="9.4" cy="-9"/>
+                        <ellipse rx="5.6" ry="9.4" cy="-9" transform="rotate(72)"/>
+                        <ellipse rx="5.6" ry="9.4" cy="-9" transform="rotate(144)"/>
+                        <ellipse rx="5.6" ry="9.4" cy="-9" transform="rotate(216)"/>
+                        <ellipse rx="5.6" ry="9.4" cy="-9" transform="rotate(288)"/>
+                    </g>
+                    <circle r="3.2" fill="var(--ivory)"/>
+                </svg>
+
+                <div class="portrait__frame">
+                    <img src="{{ $couplePhoto }}" alt="{{ $bride }} dan {{ $groom }}">
+                </div>
+
+                @include('partials.sprig', ['class' => 'portrait__sprig portrait__sprig--left'])
+                @include('partials.sprig', ['class' => 'portrait__sprig portrait__sprig--right'])
+            </figure>
+        @endif
+
         <h1 class="hero__names">
-            <span data-enter="2" style="display:block">{{ $bride }}</span>
+            <span data-enter="3" style="display:block">{{ $bride }}</span>
             <span class="hero__amp" data-enter="3">&amp;</span>
             <span data-enter="4" style="display:block">{{ $groom }}</span>
         </h1>
@@ -206,6 +234,10 @@
 
 <footer class="footer">
     <div class="page">
+        <svg class="band band--ornament" aria-hidden="true" focusable="false">
+            <rect width="100%" height="100%" fill="url(#songket-pucuk)"/>
+        </svg>
+
         @include('partials.sprig', ['class' => 'sprig--footer'])
 
         @if ($hashtag)
