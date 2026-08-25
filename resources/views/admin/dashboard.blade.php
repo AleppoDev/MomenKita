@@ -3,7 +3,6 @@
 @section('title', 'Gambar')
 
 @php
-    $batchSize = 200;
     $batches = (int) ceil(max($totalPhotos, 1) / $batchSize);
     $megabytes = $totalBytes > 0 ? round($totalBytes / 1048576, 1) : 0;
 @endphp
@@ -33,6 +32,15 @@
         </div>
     </div>
 
+    @unless ($cameraWillWork)
+        <div class="notice notice--warn">
+            <strong>Kamera tidak akan berfungsi untuk tetamu.</strong>
+            Laman ini dihidangkan melalui HTTP, dan kamera pelayar hanya wujud atas HTTPS.
+            Tetamu akan nampak halaman yang sempurna, tekan &ldquo;Buka kamera&rdquo;, dan tiada apa berlaku &mdash;
+            tiada mesej ralat. Pasang sijil SSL sebelum hari majlis.
+        </div>
+    @endunless
+
     @unless ($zipAvailable)
         <div class="notice notice--warn">
             Muat turun ZIP tidak tersedia kerana sambungan PHP <code>zip</code> tidak aktif.
@@ -44,19 +52,65 @@
     <div class="toolbar">
         @if ($zipAvailable && $totalPhotos > 0)
             @for ($batch = 1; $batch <= $batches; $batch++)
-                <a class="btn" href="{{ route('admin.photos.downloadAll', ['batch' => $batch]) }}">
-                    @if ($batches === 1)
-                        Muat turun semua (ZIP)
-                    @else
-                        Muat turun kumpulan {{ $batch }} daripada {{ $batches }}
-                    @endif
-                </a>
+                <form method="POST" action="{{ route('admin.archives.store') }}">
+                    @csrf
+                    <input type="hidden" name="batch" value="{{ $batch }}">
+                    <button type="submit" class="btn">
+                        @if ($batches === 1)
+                            Sediakan ZIP semua gambar
+                        @else
+                            Sediakan ZIP kumpulan {{ $batch }} / {{ $batches }}
+                        @endif
+                    </button>
+                </form>
             @endfor
         @endif
 
         <a class="btn btn--ghost" href="{{ route('qr') }}?size=1200" target="_blank" rel="noopener">Kod QR (PNG)</a>
         <a class="btn btn--ghost" href="{{ route('qr') }}?format=svg" target="_blank" rel="noopener">Kod QR (SVG untuk cetak)</a>
     </div>
+
+    @if ($archives->isNotEmpty())
+        <div class="card" style="margin-bottom:2rem">
+            <h2 style="margin:0 0 0.3rem;font-size:1.05rem">Arkib ZIP</h2>
+            <p style="margin:0 0 1rem;color:var(--ink-soft);font-size:0.85rem">
+                Dibina di latar belakang. Muat semula halaman untuk lihat kemajuan.
+            </p>
+
+            <table style="width:100%;border-collapse:collapse;font-size:0.88rem">
+                <tbody>
+                @foreach ($archives as $archive)
+                    <tr style="border-top:1px solid var(--line)">
+                        <td style="padding:0.6rem 0.5rem 0.6rem 0">
+                            Kumpulan {{ $archive->batch }}
+                            <span style="color:var(--ink-faint)">· {{ $archive->created_at?->diffForHumans() }}</span>
+                        </td>
+                        <td style="padding:0.6rem 0.5rem;color:var(--ink-soft)">
+                            @if ($archive->status === \App\Models\Archive::READY)
+                                {{ $archive->photo_count }} gambar · {{ $archive->humanSize() }}
+                            @elseif ($archive->status === \App\Models\Archive::FAILED)
+                                <span style="color:var(--danger)">Gagal: {{ $archive->error }}</span>
+                            @else
+                                Sedang disediakan…
+                            @endif
+                        </td>
+                        <td style="padding:0.6rem 0;text-align:right;white-space:nowrap">
+                            @if ($archive->isReady())
+                                <a class="btn btn--tiny" href="{{ route('admin.archives.download', $archive) }}">Muat turun</a>
+                            @endif
+
+                            <form method="POST" action="{{ route('admin.archives.destroy', $archive) }}" style="display:inline">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="btn btn--danger btn--tiny">Buang</button>
+                            </form>
+                        </td>
+                    </tr>
+                @endforeach
+                </tbody>
+            </table>
+        </div>
+    @endif
 
     @if ($photos->isEmpty())
         <div class="empty">

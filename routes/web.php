@@ -32,7 +32,9 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('tetapan', [SettingController::class, 'edit'])->name('settings');
         Route::put('tetapan', [SettingController::class, 'update'])->name('settings.update');
 
-        Route::get('muat-turun/semua', [PhotoAdminController::class, 'downloadAll'])->name('photos.downloadAll');
+        Route::post('arkib', [PhotoAdminController::class, 'requestArchive'])->name('archives.store');
+        Route::get('arkib/{archive}/muat-turun', [PhotoAdminController::class, 'downloadArchive'])->name('archives.download');
+        Route::delete('arkib/{archive}', [PhotoAdminController::class, 'destroyArchive'])->name('archives.destroy');
         Route::get('gambar/{photo}/muat-turun', [PhotoAdminController::class, 'download'])->name('photos.download');
         Route::patch('gambar/{photo}/papar', [PhotoAdminController::class, 'toggle'])->name('photos.toggle');
         Route::delete('gambar/{photo}', [PhotoAdminController::class, 'destroy'])->name('photos.destroy');

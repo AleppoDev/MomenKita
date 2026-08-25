@@ -16,6 +16,18 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'admin' => EnsureAdmin::class,
         ]);
+
+        /*
+         | Di belakang Cloudflare atau nginx, permintaan sampai kepada PHP
+         | sebagai HTTP walaupun tetamu menggunakan HTTPS. Tanpa ini,
+         | isSecure() sentiasa palsu, URL dijana sebagai http, dan kuki
+         | selamat tidak pernah dihantar.
+         |
+         | '*' mempercayai mana-mana proksi. Ini betul apabila aplikasi hanya
+         | boleh dicapai melalui proksi itu — pastikan port PHP tidak
+         | didedahkan terus ke internet.
+         */
+        $middleware->trustProxies(at: '*');
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(

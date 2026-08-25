@@ -41,16 +41,15 @@ cp .env.example .env
 php artisan key:generate
 ```
 
-Isikan `.env`:
+Isikan `.env`, kemudian jana kata laluan admin:
 
-```
-APP_URL=http://localhost:8020
-DB_CONNECTION=mysql
-DB_DATABASE=momenkita
-ADMIN_PASSWORD=pilih-kata-laluan-yang-kuat
+```bash
+php artisan momenkita:password
 ```
 
-Kemudian:
+Perintah itu mencetak kata laluan dan cincangannya. Tampal cincangan ke
+`ADMIN_PASSWORD_HASH` dan kosongkan `ADMIN_PASSWORD` — kata laluan asal
+tidak disimpan di mana-mana.
 
 ```bash
 php artisan migrate --seed
@@ -60,11 +59,35 @@ php artisan serve --port=8020
 
 `--seed` mengisi tetapan majlis contoh yang boleh diubah di **Admin → Tetapan**.
 
+## Deploy ke pelayan
+
+`.env.example` sudah membawa nilai selamat untuk pengeluaran. Tiga perkara
+yang mudah terlepas:
+
+**1. Pekerja queue mesti berjalan.** Muat turun ZIP dibina di latar belakang.
+Tanpa pekerja, permintaan ZIP akan tersangkut pada "Sedang disediakan…"
+selama-lamanya:
+
+```bash
+php artisan queue:work --queue=archives,default --tries=2
+```
+
+Guna supervisor atau systemd supaya ia hidup semula selepas reboot.
+
+**2. `APP_DEBUG=false`.** Kalau tidak, sebarang ralat memaparkan jejak penuh
+kepada pelawat — termasuk kata laluan pangkalan data.
+
+**3. HTTPS.** Panel admin akan memaparkan amaran merah kalau laman dicapai
+melalui HTTP, kerana kamera tetamu tidak akan berfungsi. Amaran itu satu-satunya
+petunjuk; kegagalan kamera sendiri adalah senyap.
+
+
 ### Keperluan
 
 - PHP 8.3 dengan `gd`, `exif`, `fileinfo`
 - `zip` — hanya untuk muat turun ZIP pukal; tanpanya muat turun satu-satu tetap berfungsi
 - MySQL 5.7 ke atas
+- Satu pekerja queue yang sentiasa berjalan
 
 ---
 
