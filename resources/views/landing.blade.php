@@ -45,7 +45,7 @@
         <p class="hero__intro" data-enter="1">Dengan penuh kesyukuran, kami menjemput anda</p>
 
         @if ($couplePhoto)
-            <figure class="portrait" data-enter="2">
+            <figure class="portrait">
                 <svg class="portrait__crown" viewBox="-22 -22 44 44" fill="currentColor" aria-hidden="true">
                     <g class="divider__petals">
                         <ellipse rx="5.6" ry="9.4" cy="-9"/>
@@ -67,9 +67,9 @@
         @endif
 
         <h1 class="hero__names">
-            <span data-enter="3" style="display:block">{{ $bride }}</span>
-            <span class="hero__amp" data-enter="3">&amp;</span>
-            <span data-enter="4" style="display:block">{{ $groom }}</span>
+            <span style="display:block">{{ $bride }}</span>
+            <span class="hero__amp">&amp;</span>
+            <span style="display:block">{{ $groom }}</span>
         </h1>
 
         <div data-enter="5">
@@ -267,6 +267,13 @@
     };
 </script>
 <script src="{{ asset('js/momenkita.js') }}" defer></script>
+
+{{-- Gerakan lanjutan. Dihoskan sendiri, bukan CDN: kalau internet dewan
+     tersekat, halaman tetap hidup sepenuhnya tanpa fail-fail ini. --}}
+<script src="{{ asset('js/vendor/gsap.min.js') }}" defer></script>
+<script src="{{ asset('js/vendor/ScrollTrigger.min.js') }}" defer></script>
+<script src="{{ asset('js/vendor/SplitText.min.js') }}" defer></script>
+<script src="{{ asset('js/motion.js') }}" defer></script>
 
 </body>
 </html>
