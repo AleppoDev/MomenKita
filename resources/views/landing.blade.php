@@ -79,17 +79,13 @@
                 <p class="hero__meta"><strong>{{ $date }}</strong></p>
             @endif
 
-            @if ($venue)
-                <p class="hero__meta">{{ $venue }}</p>
-            @endif
-
             @if ($heroNote)
                 <p class="hero__note">{{ $heroNote }}</p>
             @endif
         </div>
     </div>
 
-    <a class="hero__scroll" href="#rakam">Tatal ke bawah</a>
+    <a class="hero__scroll" href="#rakam">Lelusur Lebih Lanjut</a>
 </header>
 
 @if ($date || $venue || $hashtag)
@@ -187,7 +183,7 @@
 <section class="section" data-gallery>
     <div class="page">
         <div class="section__head" data-reveal>
-            <h2 class="section__title">Momen dari mata tetamu</h2>
+            <h2 class="section__title">Momen dari lensa tetamu</h2>
         </div>
 
         <p class="gallery__count" data-count data-value="{{ $photoCount }}">
