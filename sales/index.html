@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MomenKita — Galeri Gambar Tetamu untuk Majlis Perkahwinan</title>
+<meta name="description" content="Tetamu imbas kod QR, ambil gambar, dan ia terus masuk ke galeri majlis anda. Semua gambar diserahkan dalam resolusi asal selepas majlis.">
+
+<meta property="og:title" content="MomenKita — Galeri Gambar Tetamu">
+<meta property="og:description" content="Setiap tetamu jadi jurugambar. Semua momen dikumpul di satu tempat.">
+<meta property="og:type" content="website">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  --ivory:#fbf8f3; --ivory-deep:#f3ece1; --ink:#2b2724; --ink-soft:#5f564e;
+  --ink-faint:#6f665b; --sage:#5a6b57; --sage-deep:#3f4c3d; --gold:#a8823f;
+  --hairline:rgba(168,130,63,.34); --line:rgba(43,39,36,.12); --card:#fff;
+  --shadow:0 1px 2px rgba(43,39,36,.06),0 6px 20px rgba(43,39,36,.06);
+  --shadow-lg:0 10px 30px rgba(43,39,36,.1),0 30px 70px rgba(43,39,36,.09);
+  --display:"Cormorant Garamond",Georgia,serif;
+  --sans:"Inter",ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --page:min(1080px,100% - 2.5rem);
+  --ease:cubic-bezier(.16,1,.3,1);
+}
+*,*::before,*::after{box-sizing:border-box}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--ivory);color:var(--ink);font-family:var(--sans);line-height:1.65;-webkit-font-smoothing:antialiased}
+img{max-width:100%;display:block}
+[hidden]{display:none!important}
+h1,h2,h3{font-family:var(--display);font-weight:500;line-height:1.12;margin:0;text-wrap:balance}
+p{text-wrap:pretty}
+a{color:inherit}
+.page{width:var(--page);margin-inline:auto}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:.55rem;
+  padding:.95rem 1.9rem;border:1px solid transparent;border-radius:999px;
+  background:var(--sage);color:#fff;font:inherit;font-size:.95rem;font-weight:500;
+  text-decoration:none;cursor:pointer;box-shadow:var(--shadow);
+  transition:transform .3s var(--ease),box-shadow .3s var(--ease)}
+.btn:hover{transform:translateY(-2px);box-shadow:var(--shadow-lg)}
+.btn:focus-visible{outline:2px solid var(--gold);outline-offset:3px}
+.btn--ghost{background:transparent;color:var(--ink);border-color:var(--line);box-shadow:none}
+.btn--ghost:hover{background:rgba(43,39,36,.04);box-shadow:var(--shadow)}
+
+/* --- Hero --- */
+.hero{position:relative;overflow:hidden;text-align:center;
+  padding:clamp(4.5rem,11vw,7.5rem) 0 clamp(3.5rem,8vw,5.5rem);
+  background:radial-gradient(120% 90% at 50% 0%,#fffdf9 0%,var(--ivory) 48%,var(--ivory-deep) 100%)}
+.weave{position:absolute;inset:0;width:100%;height:100%;color:var(--gold);opacity:.09;pointer-events:none}
+.hero__inner{position:relative;z-index:1}
+.hero h1{font-size:clamp(2.4rem,7vw,4.4rem);letter-spacing:-.02em;max-width:16ch;margin-inline:auto}
+.hero__lead{max-width:52ch;margin:1.6rem auto 0;color:var(--ink-soft);font-size:clamp(1rem,2.4vw,1.15rem)}
+.hero__cta{display:flex;flex-wrap:wrap;gap:.8rem;justify-content:center;margin-top:2.4rem}
+.hero__note{margin-top:1.6rem;font-size:.86rem;color:var(--ink-faint)}
+
+.divider{display:flex;align-items:center;justify-content:center;gap:1rem;
+  color:var(--gold);margin:2.4rem auto;width:min(300px,66%)}
+.divider span{flex:1;height:1px;background:linear-gradient(90deg,transparent,var(--hairline))}
+.divider span:last-child{background:linear-gradient(90deg,var(--hairline),transparent)}
+.divider svg{width:24px;height:24px;flex:none}
+
+/* --- Seksyen --- */
+.section{padding:clamp(4rem,10vw,7rem) 0}
+.section--tint{background:var(--ivory-deep)}
+.section__head{text-align:center;max-width:44ch;margin:0 auto clamp(2.5rem,6vw,3.5rem)}
+.section__head h2{font-size:clamp(1.9rem,5vw,2.9rem)}
+.section__head p{color:var(--ink-soft);margin:1.1rem 0 0}
+
+/* --- Masalah --- */
+.problem{display:grid;gap:1.6rem;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));text-align:center}
+.problem__item h3{font-size:1.2rem;margin-bottom:.5rem}
+.problem__item p{color:var(--ink-soft);font-size:.93rem;margin:0}
+
+/* --- Langkah --- */
+.steps{counter-reset:step;display:grid;gap:2.2rem;grid-template-columns:repeat(auto-fit,minmax(230px,1fr))}
+.step{position:relative;padding-top:3.2rem;text-align:center}
+.step::before{counter-increment:step;content:counter(step);
+  position:absolute;top:0;left:50%;transform:translateX(-50%);
+  width:46px;height:46px;display:grid;place-items:center;border-radius:50%;
+  border:1px solid var(--hairline);color:var(--gold);
+  font-family:var(--display);font-size:1.3rem;background:var(--ivory)}
+.section--tint .step::before{background:var(--ivory-deep)}
+.step h3{font-size:1.15rem;margin-bottom:.5rem}
+.step p{color:var(--ink-soft);font-size:.93rem;margin:0}
+
+/* --- Harga --- */
+.plans{display:grid;gap:1.4rem;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));align-items:start}
+.plan{background:var(--card);border:1px solid var(--line);border-radius:20px;
+  padding:2rem 1.7rem;box-shadow:var(--shadow);display:flex;flex-direction:column;height:100%}
+.plan--featured{border-color:var(--hairline);box-shadow:var(--shadow-lg);
+  padding-block:2.6rem;position:relative}
+.plan__flag{position:absolute;top:-.8rem;left:50%;transform:translateX(-50%);
+  background:var(--sage);color:#fff;font-size:.7rem;letter-spacing:.1em;
+  text-transform:uppercase;padding:.3rem .9rem;border-radius:999px;white-space:nowrap}
+.plan__name{font-family:var(--display);font-size:1.5rem;margin:0}
+.plan__for{color:var(--ink-faint);font-size:.85rem;margin:.3rem 0 1.3rem}
+.plan__price{font-family:var(--display);font-size:2.9rem;line-height:1;margin:0}
+.plan__price small{font-size:1rem;color:var(--ink-faint);font-family:var(--sans)}
+.plan__unit{color:var(--ink-faint);font-size:.82rem;margin:.45rem 0 1.6rem}
+.plan ul{list-style:none;margin:0 0 1.8rem;padding:0;display:grid;gap:.7rem;flex:1}
+.plan li{position:relative;padding-left:1.6rem;font-size:.92rem;color:var(--ink-soft)}
+.plan li::before{content:"";position:absolute;left:0;top:.55em;width:7px;height:7px;
+  border-radius:60% 8% 60% 8%;background:var(--gold)}
+.plan .btn{width:100%}
+
+.addons{margin-top:2.5rem;text-align:center;color:var(--ink-soft);font-size:.9rem}
+
+/* --- Soalan --- */
+.faq{max-width:64ch;margin-inline:auto;display:grid;gap:.6rem}
+.faq details{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:1.1rem 1.3rem}
+.faq summary{cursor:pointer;font-weight:500;list-style:none}
+.faq summary::-webkit-details-marker{display:none}
+.faq summary::after{content:"+";float:right;color:var(--gold);font-size:1.3rem;line-height:1}
+.faq details[open] summary::after{content:"\2212"}
+.faq p{margin:.9rem 0 0;color:var(--ink-soft);font-size:.93rem}
+
+/* --- Penutup --- */
+.closing{text-align:center}
+.closing h2{font-size:clamp(2rem,5.5vw,3.2rem)}
+.closing p{max-width:46ch;margin:1.2rem auto 2.2rem;color:var(--ink-soft)}
+
+.footer{border-top:1px solid var(--line);padding:2.8rem 0;text-align:center;
+  color:var(--ink-faint);font-size:.85rem}
+.footer a{color:var(--sage);text-decoration:none;font-weight:500}
+.footer a:hover{text-decoration:underline}
+
+@media (prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  *,*::before,*::after{transition-duration:.01ms!important;animation-duration:.01ms!important}
+}
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" aria-hidden="true" style="position:absolute">
+  <defs>
+    <pattern id="tabur" width="168" height="168" patternUnits="userSpaceOnUse">
+      <g fill="currentColor">
+        <path d="M40 26 l2.4 6.8 6.8 2.4 -6.8 2.4 -2.4 6.8 -2.4 -6.8 -6.8 -2.4 6.8 -2.4z"/>
+        <path d="M126 74 l2 5.6 5.6 2 -5.6 2 -2 5.6 -2 -5.6 -5.6 -2 5.6 -2z"/>
+        <path d="M92 140 l2.4 6.8 6.8 2.4 -6.8 2.4 -2.4 6.8 -2.4 -6.8 -6.8 -2.4 6.8 -2.4z"/>
+        <circle cx="140" cy="18" r="1.8"/><circle cx="18" cy="112" r="1.8"/>
+      </g>
+    </pattern>
+    <symbol id="bloom" viewBox="-22 -22 44 44">
+      <g fill="currentColor">
+        <ellipse rx="5.6" ry="9.4" cy="-9"/>
+        <ellipse rx="5.6" ry="9.4" cy="-9" transform="rotate(72)"/>
+        <ellipse rx="5.6" ry="9.4" cy="-9" transform="rotate(144)"/>
+        <ellipse rx="5.6" ry="9.4" cy="-9" transform="rotate(216)"/>
+        <ellipse rx="5.6" ry="9.4" cy="-9" transform="rotate(288)"/>
+      </g>
+      <circle r="3.2" fill="#fbf8f3"/>
+    </symbol>
+  </defs>
+</svg>
+
+<header class="hero">
+  <svg class="weave" aria-hidden="true"><rect width="100%" height="100%" fill="url(#tabur)"/></svg>
+
+  <div class="page hero__inner">
+    <h1>Setiap tetamu jadi jurugambar majlis anda</h1>
+
+    <p class="hero__lead">
+      Tetamu imbas satu kod QR, ambil gambar, dan ia terus masuk ke galeri majlis anda.
+      Tiada aplikasi untuk dipasang. Selepas majlis, anda terima semua gambar dalam
+      resolusi asal.
+    </p>
+
+    <div class="hero__cta">
+      <a class="btn" href="#harga">Lihat harga</a>
+      <!-- GANTI: pautan ke laman majlis contoh anda -->
+      <a class="btn btn--ghost" href="#" rel="noopener">Lihat contoh</a>
+    </div>
+
+    <p class="hero__note">Sesuai untuk majlis 50 hingga 500 tetamu</p>
+  </div>
+</header>
+
+<section class="section">
+  <div class="page">
+    <div class="section__head">
+      <h2>Gambar terbaik majlis anda ada pada telefon tetamu</h2>
+      <p>Jurugambar tidak boleh berada di setiap meja pada masa yang sama.</p>
+    </div>
+
+    <div class="problem">
+      <div class="problem__item">
+        <h3>Bertaburan</h3>
+        <p>Gambar tersimpan dalam ratusan telefon, dalam puluhan kumpulan WhatsApp yang berlainan.</p>
+      </div>
+      <div class="problem__item">
+        <h3>Termampat</h3>
+        <p>Yang sampai kepada anda sudah dikecilkan WhatsApp sehingga tidak boleh dicetak.</p>
+      </div>
+      <div class="problem__item">
+        <h3>Hilang</h3>
+        <p>Selepas seminggu, tiada siapa ingat untuk hantar. Momen itu hilang begitu sahaja.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section section--tint">
+  <div class="page">
+    <div class="section__head">
+      <h2>Tiga langkah, tiada aplikasi</h2>
+    </div>
+
+    <div class="steps">
+      <div class="step">
+        <h3>Kami sediakan laman anda</h3>
+        <p>Nama, tarikh, tempat dan gambar pengantin. Siap dengan kod QR untuk dicetak pada kad meja dan pelamin.</p>
+      </div>
+      <div class="step">
+        <h3>Tetamu imbas dan rakam</h3>
+        <p>Kamera terus terbuka dalam pelayar. Tetamu boleh tulis ucapan bersama gambar.</p>
+      </div>
+      <div class="step">
+        <h3>Anda terima semuanya</h3>
+        <p>Galeri hidup sepanjang majlis. Selepas itu, semua gambar diserahkan dalam resolusi asal.</p>
+      </div>
+    </div>
+
+    <div class="divider" aria-hidden="true">
+      <span></span><svg><use href="#bloom"/></svg><span></span>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="harga">
+  <div class="page">
+    <div class="section__head">
+      <h2>Harga</h2>
+      <p>Bayaran sekali untuk satu majlis. Tiada yuran bulanan, tiada langganan.</p>
+    </div>
+
+    <div class="plans">
+      <article class="plan">
+        <h3 class="plan__name">Asas</h3>
+        <p class="plan__for">Majlis kecil dan sederhana</p>
+        <p class="plan__price">RM 250</p>
+        <p class="plan__unit">satu majlis</p>
+        <ul>
+          <li>Laman majlis peribadi anda</li>
+          <li>Kod QR untuk cetak, PNG dan vektor</li>
+          <li>Galeri langsung sepanjang majlis</li>
+          <li>Gambar tanpa had</li>
+          <li>Semua gambar resolusi asal diserahkan</li>
+          <li>Laman kekal hidup 1 bulan</li>
+        </ul>
+        <a class="btn btn--ghost" href="#hubungi">Pilih Asas</a>
+      </article>
+
+      <article class="plan plan--featured">
+        <span class="plan__flag">Paling ramai pilih</span>
+        <h3 class="plan__name">Pilihan</h3>
+        <p class="plan__for">Majlis penuh sehari suntuk</p>
+        <p class="plan__price">RM 450</p>
+        <p class="plan__unit">satu majlis</p>
+        <ul>
+          <li>Semua dalam Asas</li>
+          <li>Warna dan reka bentuk ikut tema majlis</li>
+          <li>Slideshow untuk TV atau projektor di dewan</li>
+          <li>Ucapan tetamu sebagai buku tamu digital</li>
+          <li>Laman kekal hidup 3 bulan</li>
+          <li>Sokongan melalui WhatsApp pada hari majlis</li>
+        </ul>
+        <a class="btn" href="#hubungi">Pilih Pilihan</a>
+      </article>
+
+      <article class="plan">
+        <h3 class="plan__name">Eksklusif</h3>
+        <p class="plan__for">Majlis besar dan berbilang hari</p>
+        <p class="plan__price">RM 800</p>
+        <p class="plan__unit">satu majlis</p>
+        <ul>
+          <li>Semua dalam Pilihan</li>
+          <li>Nama domain sendiri</li>
+          <li>Video pendek daripada tetamu</li>
+          <li>Kad QR direka siap untuk cetak</li>
+          <li>Arkib kekal hidup 1 tahun</li>
+          <li>Cakera keras berisi semua gambar, jika dipohon</li>
+        </ul>
+        <a class="btn btn--ghost" href="#hubungi">Pilih Eksklusif</a>
+      </article>
+    </div>
+
+    <p class="addons">
+      Majlis lebih daripada 500 tetamu atau keperluan khas? Hubungi kami untuk sebut harga.
+    </p>
+  </div>
+</section>
+
+<section class="section section--tint">
+  <div class="page">
+    <div class="section__head">
+      <h2>Soalan lazim</h2>
+    </div>
+
+    <div class="faq">
+      <details>
+        <summary>Tetamu perlu pasang aplikasi?</summary>
+        <p>Tidak. Semuanya berlaku dalam pelayar telefon. Imbas QR, kamera terbuka, hantar. Tetamu yang tidak biasa dengan teknologi pun boleh guna.</p>
+      </details>
+
+      <details>
+        <summary>Kalau internet dewan perlahan?</summary>
+        <p>Gambar dikecilkan dalam telefon sebelum dihantar, dan sistem mencuba semula sendiri kalau talian tersekat. Ini memang direka untuk wifi dewan yang sesak.</p>
+      </details>
+
+      <details>
+        <summary>Berapa besar gambar yang kami terima?</summary>
+        <p>Resolusi asal seperti yang dihantar telefon tetamu, cukup tajam untuk cetakan A4. Galeri di laman menggunakan versi kecil supaya laju, tetapi anda menerima yang penuh.</p>
+      </details>
+
+      <details>
+        <summary>Boleh kami buang gambar yang tidak sesuai?</summary>
+        <p>Boleh. Panel admin membolehkan anda menyembunyikan atau membuang mana-mana gambar serta-merta, sepanjang dan selepas majlis.</p>
+      </details>
+
+      <details>
+        <summary>Siapa boleh lihat gambar kami?</summary>
+        <p>Hanya sesiapa yang ada pautan atau kod QR. Laman tidak disenaraikan dalam enjin carian. Selepas tempoh tamat, laman ditutup dan gambar dipadam mengikut arahan anda.</p>
+      </details>
+
+      <details>
+        <summary>Bila kami terima semua gambar?</summary>
+        <p>Dalam tempoh tiga hari selepas majlis, sebagai fail ZIP. Untuk majlis besar ia dipecahkan kepada beberapa bahagian supaya mudah dimuat turun.</p>
+      </details>
+    </div>
+  </div>
+</section>
+
+<section class="section closing" id="hubungi">
+  <div class="page">
+    <h2>Tempah tarikh majlis anda</h2>
+    <p>
+      Beritahu kami tarikh dan anggaran bilangan tetamu. Kami sediakan laman
+      contoh untuk anda lihat sebelum apa-apa bayaran.
+    </p>
+
+    <!-- GANTI: nombor WhatsApp anda dalam format antarabangsa tanpa + atau ruang -->
+    <a class="btn" href="https://wa.me/60XXXXXXXXX?text=Hi%2C%20saya%20berminat%20dengan%20MomenKita%20untuk%20majlis%20saya."
+       target="_blank" rel="noopener">
+      WhatsApp kami
+    </a>
+
+    <div class="divider" aria-hidden="true">
+      <span></span><svg><use href="#bloom"/></svg><span></span>
+    </div>
+  </div>
+</section>
+
+<footer class="footer">
+  <div class="page">
+    <p>MomenKita &mdash; galeri gambar tetamu untuk majlis perkahwinan</p>
+    <p>Dibangunkan oleh <a href="https://github.com/AleppoDev" target="_blank" rel="noopener">AleppoDev</a></p>
+  </div>
+</footer>
+
+</body>
+</html>
