@@ -11,12 +11,12 @@ class SettingSeeder extends Seeder
     {
         Setting::putMany([
             'bride_name' => 'Nur Aisyah',
-            'groom_name' => 'Ahmad Firdaus',
-            'couple_slug' => 'aisyah-firdaus',
+            'groom_name' => 'Ikhmal Hafiz',
+            'couple_slug' => 'Ikhmal-Aisyah',
             'wedding_date' => '12 Disember 2026',
-            'venue_name' => 'Dewan Seri Melati',
-            'venue_address' => 'Kuala Terengganu, Terengganu',
-            'hashtag' => '#AisyahFirdaus',
+            'venue_name' => '"Terbitnya jejaka dari bumi tempat beralas tapak, melangkah gagah menyunting bunga."',
+            'venue_address' => 'Besut, Terengganu',
+            'hashtag' => '#MalSyah',
             'hero_note' => 'Terima kasih kerana sudi hadir meraikan hari bahagia kami.',
             'camera_note' => 'Rakam momen yang anda nampak — gambar anda terus masuk ke galeri kami.',
         ]);

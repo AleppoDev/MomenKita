@@ -212,6 +212,11 @@
             <p class="footer__hashtag">{{ $hashtag }}</p>
         @endif
         <p>{{ $title }}@if ($date) · {{ $date }} @endif</p>
+
+        <p class="footer__credit">
+            Direka &amp; dibangunkan oleh
+            <a href="https://github.com/AleppoDev" target="_blank" rel="noopener">AleppoDev</a>
+        </p>
     </div>
 </footer>
 

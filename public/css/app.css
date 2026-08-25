@@ -9,7 +9,9 @@
   --ivory-deep: #f3ece1;
   --ink: #2b2724;
   --ink-soft: #5f564e;
-  --ink-faint: #8a7f73;
+  /* Digelapkan daripada #8a7f73: pada nada asal itu ia hanya mencapai 3.7:1
+     terhadap ivory, di bawah ambang 4.5:1 untuk teks kecil yang memakainya. */
+  --ink-faint: #6f665b;
   --sage: #5a6b57;
   --sage-deep: #3f4c3d;
   --gold: #a8823f;
@@ -660,6 +662,26 @@ a { color: inherit; }
 }
 
 .footer__hashtag { font-family: var(--display); font-size: 1.6rem; color: var(--gold); margin: 0 0 0.6rem; }
+
+/* Kredit pembangun: hadir, tetapi tidak bersaing dengan nama pengantin. */
+.footer__credit {
+  margin: 1.6rem 0 0;
+  padding-top: 1.4rem;
+  border-top: 1px solid var(--line);
+  font-size: 0.76rem;
+  color: var(--ink-faint);
+}
+
+.footer__credit a {
+  color: var(--sage);
+  text-decoration: none;
+  font-weight: 500;
+  border-bottom: 1px solid transparent;
+  transition: border-color 0.25s var(--ease-quart), color 0.25s;
+}
+
+.footer__credit a:hover { color: var(--sage-deep); border-bottom-color: var(--hairline); }
+.footer__credit a:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; border-radius: 2px; }
 
 /* ==========================================================================
    Motion
