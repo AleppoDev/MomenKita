@@ -1,0 +1,220 @@
+/* ==========================================================================
+   MomenKita — panel admin
+   Sengaja hambar dan padat: ini alat kerja, bukan halaman majlis.
+   ========================================================================== */
+
+:root {
+  --bg: #f6f5f3;
+  --card: #ffffff;
+  --ink: #23211f;
+  --ink-soft: #6b645d;
+  --ink-faint: #9c948a;
+  --line: rgba(35, 33, 31, 0.13);
+  --sage: #5a6b57;
+  --danger: #b4483c;
+  --shadow: 0 1px 2px rgba(35, 33, 31, 0.06), 0 6px 18px rgba(35, 33, 31, 0.06);
+  --sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: 0.95rem;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+img { max-width: 100%; display: block; }
+
+[hidden] { display: none !important; }
+
+a { color: var(--sage); }
+
+.wrap { width: min(1180px, 100% - 2.5rem); margin-inline: auto; }
+
+/* --- Bar atas ----------------------------------------------------------- */
+
+.topbar {
+  background: var(--card);
+  border-bottom: 1px solid var(--line);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.topbar__inner {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 0.9rem 0;
+  flex-wrap: wrap;
+}
+
+.topbar__brand { font-weight: 600; letter-spacing: -0.01em; text-decoration: none; color: var(--ink); }
+
+.topbar__nav { display: flex; gap: 1.1rem; margin-left: auto; align-items: center; flex-wrap: wrap; }
+
+.topbar__link { color: var(--ink-soft); text-decoration: none; font-size: 0.9rem; }
+.topbar__link:hover { color: var(--ink); }
+.topbar__link[aria-current="page"] { color: var(--ink); font-weight: 600; }
+
+/* --- Komponen ----------------------------------------------------------- */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  padding: 0.6rem 1.1rem;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: var(--sage);
+  color: #fff;
+  font: inherit;
+  font-size: 0.88rem;
+  font-weight: 500;
+  cursor: pointer;
+  text-decoration: none;
+  transition: filter 0.15s, background 0.15s;
+}
+
+.btn:hover { filter: brightness(1.08); }
+.btn[disabled] { opacity: 0.5; cursor: not-allowed; }
+
+.btn--ghost { background: transparent; color: var(--ink); border-color: var(--line); }
+.btn--ghost:hover { background: rgba(35, 33, 31, 0.05); filter: none; }
+
+.btn--danger { background: transparent; color: var(--danger); border-color: rgba(180, 72, 60, 0.35); }
+.btn--danger:hover { background: rgba(180, 72, 60, 0.08); filter: none; }
+
+.btn--tiny { padding: 0.35rem 0.65rem; font-size: 0.78rem; border-radius: 6px; }
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 1.5rem;
+  box-shadow: var(--shadow);
+}
+
+.notice {
+  background: #eef3ec;
+  border: 1px solid rgba(90, 107, 87, 0.3);
+  color: #3f4c3d;
+  border-radius: 10px;
+  padding: 0.85rem 1.1rem;
+  margin-bottom: 1.5rem;
+  font-size: 0.9rem;
+}
+
+.notice--warn { background: #fdf3e7; border-color: rgba(185, 148, 88, 0.4); color: #7a5a20; }
+
+.page-head { padding: 2.5rem 0 1.5rem; }
+.page-head h1 { margin: 0 0 0.35rem; font-size: 1.6rem; letter-spacing: -0.02em; }
+.page-head p { margin: 0; color: var(--ink-soft); }
+
+/* --- Statistik ---------------------------------------------------------- */
+
+.stats {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  margin-bottom: 2rem;
+}
+
+.stat { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 1.2rem 1.3rem; }
+.stat__label { font-size: 0.72rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-faint); margin: 0 0 0.4rem; }
+.stat__value { font-size: 1.7rem; font-weight: 600; letter-spacing: -0.02em; margin: 0; }
+
+.toolbar { display: flex; gap: 0.7rem; flex-wrap: wrap; margin-bottom: 2rem; align-items: center; }
+
+/* --- Grid gambar -------------------------------------------------------- */
+
+.shots {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+}
+
+.shot {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.shot__frame { position: relative; aspect-ratio: 1; background: #2a2724; }
+.shot__frame img { width: 100%; height: 100%; object-fit: cover; }
+
+.shot[data-hidden="true"] .shot__frame img { opacity: 0.35; filter: grayscale(1); }
+
+.shot__flag {
+  position: absolute;
+  top: 0.5rem;
+  left: 0.5rem;
+  background: rgba(35, 33, 31, 0.82);
+  color: #fff;
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 0.2rem 0.5rem;
+  border-radius: 5px;
+}
+
+.shot__body { padding: 0.75rem 0.85rem; flex: 1; display: flex; flex-direction: column; gap: 0.3rem; }
+.shot__name { font-weight: 600; font-size: 0.88rem; }
+.shot__meta { font-size: 0.76rem; color: var(--ink-faint); }
+.shot__caption { font-size: 0.8rem; color: var(--ink-soft); }
+
+.shot__actions { display: flex; gap: 0.4rem; padding: 0 0.85rem 0.85rem; flex-wrap: wrap; }
+
+.empty { text-align: center; padding: 4rem 1rem; color: var(--ink-soft); border: 1px dashed var(--line); border-radius: 14px; }
+
+/* --- Borang ------------------------------------------------------------- */
+
+.form { display: grid; gap: 1.1rem; max-width: 620px; }
+
+.field { display: grid; gap: 0.35rem; }
+.field__label { font-size: 0.78rem; font-weight: 500; color: var(--ink-soft); }
+.field__hint { font-size: 0.76rem; color: var(--ink-faint); }
+
+.field__input, .field__textarea {
+  width: 100%;
+  padding: 0.65rem 0.85rem;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  font: inherit;
+  color: var(--ink);
+}
+
+.field__textarea { resize: vertical; min-height: 76px; }
+
+.field__input:focus, .field__textarea:focus {
+  outline: none;
+  border-color: var(--sage);
+  box-shadow: 0 0 0 3px rgba(90, 107, 87, 0.14);
+}
+
+.field__error { color: var(--danger); font-size: 0.8rem; }
+
+.pagination { margin-top: 2rem; display: flex; justify-content: center; }
+.pagination svg { width: 16px; height: 16px; }
+
+/* --- Log masuk ---------------------------------------------------------- */
+
+.login { min-height: 100svh; display: grid; place-items: center; padding: 2rem 1.25rem; }
+.login__card { width: min(400px, 100%); }
+.login__title { margin: 0 0 0.3rem; font-size: 1.35rem; letter-spacing: -0.02em; }
+.login__sub { margin: 0 0 1.5rem; color: var(--ink-soft); font-size: 0.88rem; }
+
+/* --- QR ----------------------------------------------------------------- */
+
+.qr { display: grid; gap: 1rem; justify-items: start; }
+.qr img { width: 240px; border: 1px solid var(--line); border-radius: 12px; background: #fff; padding: 0.75rem; }
