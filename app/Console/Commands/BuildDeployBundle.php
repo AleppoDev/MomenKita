@@ -17,7 +17,9 @@ use SplFileInfo;
  */
 class BuildDeployBundle extends Command
 {
-    protected $signature = 'momenkita:bundle {--out=deploy/bundle : Folder keluaran}';
+    protected $signature = 'momenkita:bundle
+                            {--out=deploy/bundle : Folder keluaran}
+                            {--no-zip : Langkau pemampatan}';
 
     protected $description = 'Bina pakej sedia muat naik untuk hosting perkongsian tanpa SSH';
 
@@ -79,6 +81,11 @@ class BuildDeployBundle extends Command
 
         file_put_contents($outPath . '/.env.pengeluaran', $this->envTemplate());
         file_put_contents($outPath . '/LANGKAH.md', $this->steps());
+
+        if (! $this->option('no-zip')) {
+            $this->zip($appRoot, $outPath . '/1-app-root.zip');
+            $this->zip($htdocs, $outPath . '/2-htdocs.zip');
+        }
 
         $this->newLine();
         $this->components->info('Pakej siap: ' . $out);
@@ -175,6 +182,56 @@ class BuildDeployBundle extends Command
         }
 
         return $count;
+    }
+
+    /**
+     * Memampat dengan pemisah laluan garis miring ke hadapan.
+     *
+     * Compress-Archive pada Windows PowerShell 5.1 menulis backslash sebagai
+     * pemisah di dalam arkib. Pengekstrak Linux tidak menganggapnya sebagai
+     * pemisah folder, jadi arkib itu diekstrak menjadi fail rata bernama
+     * "app\Http\Controllers\Foo.php" dan aplikasi langsung tidak berjalan.
+     */
+    private function zip(string $source, string $zipPath): void
+    {
+        if (! class_exists(\ZipArchive::class)) {
+            $this->components->warn('Sambungan zip tidak aktif; muat naik folder terus.');
+
+            return;
+        }
+
+        $archive = new \ZipArchive();
+
+        if ($archive->open($zipPath, \ZipArchive::CREATE | \ZipArchive::OVERWRITE) !== true) {
+            $this->components->warn('Tidak dapat mencipta ' . basename($zipPath));
+
+            return;
+        }
+
+        $separator = chr(92);
+        $root = rtrim(strtr((string) realpath($source), $separator, '/'), '/');
+
+        $items = new RecursiveIteratorIterator(
+            new RecursiveDirectoryIterator($source, RecursiveDirectoryIterator::SKIP_DOTS),
+            RecursiveIteratorIterator::SELF_FIRST
+        );
+
+        foreach ($items as $item) {
+            $path = strtr($item->getPathname(), $separator, '/');
+            $relative = substr($path, strlen($root) + 1);
+
+            $item->isDir()
+                ? $archive->addEmptyDir($relative)
+                : $archive->addFile($path, $relative);
+        }
+
+        $archive->close();
+
+        $this->components->info(sprintf(
+            '%s siap (%.1f MB)',
+            basename($zipPath),
+            filesize($zipPath) / 1048576
+        ));
     }
 
     private function deleteTree(string $path): void
