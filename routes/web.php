@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\CronController;
 use App\Http\Controllers\Admin\AuthController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\PhotoAdminController;
@@ -40,3 +41,12 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::delete('gambar/{photo}', [PhotoAdminController::class, 'destroy'])->name('photos.destroy');
     });
 });
+
+/*
+ | Cron web untuk hosting tanpa SSH. Dihadkan kadarnya kerana ia mencetuskan
+ | kerja sebenar; token salah mengembalikan 404, jadi mengimbas untuk mencari
+ | laluan ini tidak memberi apa-apa petunjuk.
+ */
+Route::get('cron/{token}', CronController::class)
+    ->middleware('throttle:12,1')
+    ->name('cron');

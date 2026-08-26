@@ -40,7 +40,27 @@ return [
 
         'public' => [
             'driver' => 'local',
-            'root' => storage_path('app/public'),
+            /*
+             | Hosting perkongsian tanpa SSH tidak boleh menjalankan
+             | storage:link, dan banyak yang melumpuhkan symlink() sama
+             | sekali. Menetapkan PUBLIC_DISK_ROOT kepada folder di dalam
+             | akar web membuatkan muat naik ditulis terus ke tempat yang
+             | boleh dihidangkan, tanpa symlink dan tanpa perubahan kod.
+             */
+            'root' => (function () {
+                $root = (string) env('PUBLIC_DISK_ROOT', '');
+
+                if ($root === '') {
+                    return storage_path('app/public');
+                }
+
+                // Terima laluan relatif seperti "htdocs/storage" supaya fail
+                // .env yang sama berfungsi tanpa perlu tahu laluan mutlak
+                // pelayan, yang berbeza bagi setiap akaun hosting.
+                $absolute = str_starts_with($root, '/') || preg_match('#^[A-Za-z]:#', $root);
+
+                return $absolute ? $root : base_path($root);
+            })(),
             // Sengaja relatif kepada akar: gambar kekal betul walaupun laman
             // dicapai melalui domain lain, port lain, atau bertukar ke HTTPS.
             'url' => '/storage',
