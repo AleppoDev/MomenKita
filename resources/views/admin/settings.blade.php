@@ -5,8 +5,10 @@
 
 @php
     $fields = [
-        ['bride_name', 'Nama pengantin perempuan', 'text', null],
         ['groom_name', 'Nama pengantin lelaki', 'text', null],
+        ['bride_name', 'Nama pengantin perempuan', 'text', null],
+        ['groom_father', 'Bapa pengantin lelaki', 'text', 'Dipapar sebagai penjemput di bahagian atas laman. Kosongkan kedua-duanya untuk menyembunyikan.'],
+        ['groom_mother', 'Ibu pengantin lelaki', 'text', null],
         ['couple_slug', 'Nama fail muat turun', 'text', 'Digunakan sebagai nama fail ZIP, contoh: aisyah-firdaus'],
         ['wedding_date', 'Tarikh majlis', 'text', 'Ditulis bebas, contoh: 12 Disember 2026'],
         ['venue_name', 'Nama tempat', 'text', null],

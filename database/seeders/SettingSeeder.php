@@ -12,6 +12,8 @@ class SettingSeeder extends Seeder
         Setting::putMany([
             'bride_name' => 'Nur Aisyah',
             'groom_name' => 'Ikhmal Hafiz',
+            'groom_father' => '',
+            'groom_mother' => '',
             'couple_slug' => 'Ikhmal-Aisyah',
             'wedding_date' => '12 Disember 2026',
             'venue_name' => '"Terbitnya jejaka dari bumi tempat beralas tapak, melangkah gagah menyunting bunga."',

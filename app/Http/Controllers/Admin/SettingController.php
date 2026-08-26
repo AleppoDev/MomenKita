@@ -11,7 +11,8 @@ use Illuminate\Support\Facades\Storage;
 class SettingController extends Controller
 {
     private const FIELDS = [
-        'bride_name', 'groom_name', 'couple_slug', 'wedding_date',
+        'bride_name', 'groom_name', 'groom_father', 'groom_mother',
+        'couple_slug', 'wedding_date',
         'venue_name', 'venue_address', 'hashtag', 'hero_note', 'camera_note',
     ];
 
@@ -28,6 +29,8 @@ class SettingController extends Controller
         $validated = $request->validate([
             'bride_name' => ['nullable', 'string', 'max:80'],
             'groom_name' => ['nullable', 'string', 'max:80'],
+            'groom_father' => ['nullable', 'string', 'max:80'],
+            'groom_mother' => ['nullable', 'string', 'max:80'],
             'couple_slug' => ['nullable', 'string', 'max:80'],
             'wedding_date' => ['nullable', 'string', 'max:80'],
             'venue_name' => ['nullable', 'string', 'max:120'],

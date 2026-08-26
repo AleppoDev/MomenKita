@@ -367,6 +367,30 @@ a { color: inherit; }
 
 .hero__inner { position: relative; z-index: var(--z-content); width: var(--page); }
 
+.hosts { margin: 0 0 1.6rem; }
+
+.hosts__names {
+  font-family: var(--display);
+  font-size: clamp(1.15rem, 3.2vw, 1.5rem);
+  color: var(--ink-soft);
+  letter-spacing: 0.01em;
+  margin: 0 0 0.5rem;
+}
+
+/* Ampersan diletak sebagai unsur emas kecil supaya dua nama terbaca sebagai
+   satu pasangan, bukan satu senarai. */
+.hosts__amp {
+  color: var(--gold);
+  font-style: italic;
+  padding: 0 0.55rem;
+}
+
+.hosts .hero__intro {
+  margin: 0;
+  max-width: 34ch;
+  margin-inline: auto;
+}
+
 .hero__intro {
   font-family: var(--display);
   font-style: italic;

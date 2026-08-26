@@ -7,7 +7,9 @@
     $hashtag = data_get($settings, 'hashtag', '');
     $heroNote = data_get($settings, 'hero_note', '');
     $cameraNote = data_get($settings, 'camera_note', '');
-    $title = $bride . ' & ' . $groom;
+    $hostFather = data_get($settings, 'groom_father', '');
+    $hostMother = data_get($settings, 'groom_mother', '');
+    $title = $groom . ' & ' . $bride;
 
     $photoPath = data_get($settings, 'couple_photo');
     $couplePhoto = $photoPath ? Illuminate\Support\Facades\Storage::disk('public')->url($photoPath) : null;
@@ -42,7 +44,25 @@
     <div class="petals" data-petals aria-hidden="true"></div>
 
     <div class="hero__inner">
-        <p class="hero__intro" data-enter="1">Dengan penuh kesyukuran, kami menjemput anda</p>
+        @if ($hostFather || $hostMother)
+            {{-- Kad jemputan Melayu menamakan ibu bapa sebagai penjemput, bukan
+                 pengantin sendiri. Nama mereka datang dahulu, kemudian barulah
+                 pengantin diperkenalkan. --}}
+            <div class="hosts" data-enter="1">
+                <p class="hosts__names">
+                    @if ($hostFather && $hostMother)
+                        {{ $hostFather }}<span class="hosts__amp">&amp;</span>{{ $hostMother }}
+                    @else
+                        {{ $hostFather ?: $hostMother }}
+                    @endif
+                </p>
+                <p class="hero__intro">
+                    dengan penuh kesyukuran mempersilakan anda ke majlis perkahwinan putera kami
+                </p>
+            </div>
+        @else
+            <p class="hero__intro" data-enter="1">Dengan penuh kesyukuran, kami menjemput anda</p>
+        @endif
 
         @if ($couplePhoto)
             <figure class="portrait">
@@ -58,7 +78,7 @@
                 </svg>
 
                 <div class="portrait__frame">
-                    <img src="{{ $couplePhoto }}" alt="{{ $bride }} dan {{ $groom }}">
+                    <img src="{{ $couplePhoto }}" alt="{{ $groom }} dan {{ $bride }}">
                 </div>
 
                 @include('partials.sprig', ['class' => 'portrait__sprig portrait__sprig--left'])
@@ -67,9 +87,9 @@
         @endif
 
         <h1 class="hero__names">
-            <span style="display:block">{{ $bride }}</span>
-            <span class="hero__amp">&amp;</span>
             <span style="display:block">{{ $groom }}</span>
+            <span class="hero__amp">&amp;</span>
+            <span style="display:block">{{ $bride }}</span>
         </h1>
 
         <div data-enter="5">
