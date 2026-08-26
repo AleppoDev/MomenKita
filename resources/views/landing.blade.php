@@ -57,7 +57,7 @@
                     @endif
                 </p>
                 <p class="hero__intro">
-                    dengan penuh kesyukuran mempersilakan anda ke majlis perkahwinan putera kami
+                    Walimatulurus
                 </p>
             </div>
         @else
@@ -263,7 +263,7 @@
 
         <p class="footer__credit">
             Direka &amp; dibangunkan oleh
-            <a href="https://github.com/AleppoDev" target="_blank" rel="noopener">AleppoDev</a>
+            <a href="https://github.com/AleppoDev" target="_blank" rel="noopener">MomenKita</a>
         </p>
     </div>
 </footer>

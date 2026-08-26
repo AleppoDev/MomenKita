@@ -7,13 +7,18 @@ use Illuminate\Support\Str;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use SplFileInfo;
+use ZipArchive;
 
 /**
  * Menyusun pemasangan sedia muat naik untuk hosting perkongsian.
  *
- * Hosting tanpa SSH tidak boleh menjalankan composer, migrasi, atau
- * storage:link, jadi semuanya mesti dibungkus terlebih dahulu dan struktur
- * foldernya mesti sudah betul sebelum fail pertama dimuat naik.
+ * Susunan Laravel yang biasa meletakkan aplikasi di atas akar web dan hanya
+ * public/ di dalamnya. Banyak hosting percuma tidak membenarkannya sama
+ * sekali: InfinityFree memadam fail di luar htdocs secara automatik, dan
+ * open_basedir menghalang PHP daripada menulis di sana.
+ *
+ * Jadi semuanya duduk di dalam akar web, dan bahagian yang tidak sepatutnya
+ * dicapai melalui pelayar dilindungi oleh .htaccess.
  */
 class BuildDeployBundle extends Command
 {
@@ -36,6 +41,9 @@ class BuildDeployBundle extends Command
         '.gitignore', '.gitattributes', '.editorconfig',
     ];
 
+    /** Nama folder aplikasi di dalam akar web. */
+    private const APP_DIR = 'laravel';
+
     public function handle(): int
     {
         $base = base_path();
@@ -50,51 +58,96 @@ class BuildDeployBundle extends Command
             $this->deleteTree($outPath);
         }
 
-        $appRoot = $outPath . '/app-root';
         $htdocs = $outPath . '/htdocs';
+        $appDir = $htdocs . '/' . self::APP_DIR;
 
-        $copied = $this->copyApp($base, $appRoot);
+        $copied = $this->copyApp($base, $appDir);
         $this->components->info('Fail aplikasi disalin: ' . $copied);
 
-        // public/storage ialah junction yang dicipta oleh storage:link. Pada
-        // Windows is_link() tidak mengenalinya, dan pengulang cuba menyalin
-        // folder itu sebagai fail. Ia dikecualikan terus: struktur folder
-        // muat naik dicipta semula sebagai folder sebenar di bawah.
-        $public = $this->copyTree($base . '/public', $htdocs, '', ['storage']);
-        $this->components->info('Fail awam disalin ke htdocs: ' . $public);
-
         /*
-         | Muat naik ditulis terus ke dalam akar web, jadi tiada symlink
-         | diperlukan. Folder mesti wujud dahulu kerana banyak hosting
-         | perkongsian tidak membenarkan PHP mencipta folder pada aras ini.
+         | public/storage ialah junction daripada storage:link. Pada Windows
+         | is_link() tidak mengenalinya dan pengulang cuba menyalinnya sebagai
+         | fail, jadi ia dikecualikan dan dicipta semula sebagai folder sebenar.
          */
+        $public = $this->copyTree($base . '/public', $htdocs, '', ['storage']);
+        $this->components->info('Fail awam disalin: ' . $public);
+
+        $this->writeIndex($htdocs);
+        $this->protectApp($appDir);
+
         foreach (['photos', 'thumbs', 'majlis'] as $dir) {
             @mkdir($htdocs . '/storage/' . $dir, 0755, true);
         }
 
-        @mkdir($appRoot . '/storage/app/private/archives', 0755, true);
-        @mkdir($appRoot . '/storage/logs', 0755, true);
+        @mkdir($appDir . '/storage/app/private/archives', 0755, true);
+        @mkdir($appDir . '/storage/logs', 0755, true);
 
         foreach (['cache/data', 'sessions', 'views'] as $dir) {
-            @mkdir($appRoot . '/storage/framework/' . $dir, 0755, true);
+            @mkdir($appDir . '/storage/framework/' . $dir, 0755, true);
         }
 
         file_put_contents($outPath . '/.env.pengeluaran', $this->envTemplate());
         file_put_contents($outPath . '/LANGKAH.md', $this->steps());
 
         if (! $this->option('no-zip')) {
-            $this->zip($appRoot, $outPath . '/1-app-root.zip');
-            $this->zip($htdocs, $outPath . '/2-htdocs.zip');
+            $this->zip($htdocs, $outPath . '/htdocs.zip');
         }
 
         $this->newLine();
         $this->components->info('Pakej siap: ' . $out);
-        $this->line('  <fg=gray>app-root/</>        naik ke akar akaun, di luar htdocs');
-        $this->line('  <fg=gray>htdocs/</>          naik ke akar web');
-        $this->line('  <fg=gray>.env.pengeluaran</> isi, namakan .env, letak dalam akar akaun');
-        $this->line('  <fg=gray>LANGKAH.md</>       urutan penuh');
+        $this->line('  <fg=gray>htdocs.zip</>        ekstrak DI DALAM htdocs');
+        $this->line('  <fg=gray>.env.pengeluaran</>  isi, namakan .env, letak dalam htdocs/' . self::APP_DIR . '/');
+        $this->line('  <fg=gray>LANGKAH.md</>        urutan penuh');
 
         return self::SUCCESS;
+    }
+
+    /**
+     * index.php Laravel menjangka aplikasi berada satu aras di atasnya. Di
+     * sini ia berada di dalam subfolder, jadi laluannya diubah.
+     */
+    private function writeIndex(string $htdocs): void
+    {
+        $index = $htdocs . '/index.php';
+        $source = (string) file_get_contents($index);
+
+        $source = str_replace(
+            ["__DIR__.'/../storage", "__DIR__.'/../vendor", "__DIR__.'/../bootstrap"],
+            [
+                "__DIR__.'/" . self::APP_DIR . "/storage",
+                "__DIR__.'/" . self::APP_DIR . "/vendor",
+                "__DIR__.'/" . self::APP_DIR . "/bootstrap",
+            ],
+            $source
+        );
+
+        file_put_contents($index, $source);
+    }
+
+    /**
+     * Kod aplikasi, kebergantungan dan .env berada di dalam akar web kerana
+     * hosting ini tidak membenarkan apa-apa di luarnya. Satu-satunya perkara
+     * yang menghalangnya daripada dicapai melalui pelayar ialah fail ini.
+     */
+    private function protectApp(string $appDir): void
+    {
+        $rules = <<<'HTACCESS'
+# Folder ini mengandungi .env, vendor dan seluruh kod aplikasi.
+# Tiada satu pun sepatutnya boleh dicapai melalui pelayar.
+
+# Apache 2.4
+<IfModule mod_authz_core.c>
+    Require all denied
+</IfModule>
+
+# Apache 2.2
+<IfModule !mod_authz_core.c>
+    Order deny,allow
+    Deny from all
+</IfModule>
+HTACCESS;
+
+        file_put_contents($appDir . '/.htaccess', $rules . "\n");
     }
 
     private function copyApp(string $from, string $to): int
@@ -158,16 +211,6 @@ class BuildDeployBundle extends Command
                 }
             }
 
-            /*
-             | public/storage ialah symlink yang dicipta oleh storage:link.
-             | Ia tidak boleh disalin, dan tidak sepatutnya: pakej ini menulis
-             | muat naik terus ke dalam akar web, jadi struktur folder itu
-             | dicipta semula sebagai folder sebenar selepas penyalinan.
-             */
-            if (is_link($item->getPathname())) {
-                continue;
-            }
-
             $target = $to . '/' . $relative;
 
             if ($item->isDir()) {
@@ -189,20 +232,20 @@ class BuildDeployBundle extends Command
      *
      * Compress-Archive pada Windows PowerShell 5.1 menulis backslash sebagai
      * pemisah di dalam arkib. Pengekstrak Linux tidak menganggapnya sebagai
-     * pemisah folder, jadi arkib itu diekstrak menjadi fail rata bernama
-     * "app\Http\Controllers\Foo.php" dan aplikasi langsung tidak berjalan.
+     * pemisah folder, jadi arkib itu diekstrak menjadi ribuan fail rata dan
+     * aplikasi langsung tidak berjalan.
      */
     private function zip(string $source, string $zipPath): void
     {
-        if (! class_exists(\ZipArchive::class)) {
+        if (! class_exists(ZipArchive::class)) {
             $this->components->warn('Sambungan zip tidak aktif; muat naik folder terus.');
 
             return;
         }
 
-        $archive = new \ZipArchive();
+        $archive = new ZipArchive();
 
-        if ($archive->open($zipPath, \ZipArchive::CREATE | \ZipArchive::OVERWRITE) !== true) {
+        if ($archive->open($zipPath, ZipArchive::CREATE | ZipArchive::OVERWRITE) !== true) {
             $this->components->warn('Tidak dapat mencipta ' . basename($zipPath));
 
             return;
@@ -276,9 +319,10 @@ class BuildDeployBundle extends Command
             'QUEUE_CONNECTION=database',
             'FILESYSTEM_DISK=public',
             '',
-            '# Muat naik ditulis terus ke dalam akar web, jadi storage:link tidak',
-            '# diperlukan. Laluan ini relatif kepada akar aplikasi.',
-            'PUBLIC_DISK_ROOT=htdocs/storage',
+            '# Muat naik mesti berada di dalam akar web supaya boleh dihidangkan,',
+            '# dan storage:link tidak boleh dijalankan tanpa SSH. Laluan ini',
+            '# relatif kepada folder aplikasi, jadi ia menunjuk keluar satu aras.',
+            'PUBLIC_DISK_ROOT=../storage',
             '',
             'MAIL_MAILER=log',
             '',
@@ -301,75 +345,88 @@ class BuildDeployBundle extends Command
         return <<<'MD'
 # Deploy ke hosting perkongsian tanpa SSH
 
-Susunan folder yang dituju:
+Susunan yang dituju, semuanya di dalam akar web:
 
 ```
-akar akaun/
-  app/  bootstrap/  config/  vendor/  ...   <- daripada app-root/
-  .env                                      <- daripada .env.pengeluaran
-  htdocs/                                   <- akar web
-    index.php  css/  js/  storage/
+htdocs/
+  index.php  css/  js/  storage/     <- dihidangkan kepada pelayar
+  laravel/                           <- dilindungi .htaccess
+    .htaccess  .env  app/  vendor/  ...
 ```
 
-Kunci keselamatannya ialah `.env` dan `vendor/` berada **di luar** `htdocs/`.
-Kalau ia berada di dalam, sesiapa boleh membaca kata laluan pangkalan data
-anda melalui pelayar.
+Susunan Laravel yang biasa meletakkan `vendor/` dan `.env` di atas akar web.
+Hosting ini tidak membenarkannya: fail di luar `htdocs` dipadam secara
+automatik, dan `open_basedir` menghalang PHP daripada menulis di sana.
+
+Jadi semuanya duduk di dalam `htdocs`, dan `laravel/.htaccess` yang
+menghalangnya daripada dicapai melalui pelayar. **Sahkan perlindungan itu
+selepas naik** — arahannya di bawah.
 
 ## Langkah
 
-1. **Pangkalan data.** Cipta satu dalam panel hosting. Catat nama, pengguna,
-   kata laluan dan hos.
+1. **Pangkalan data.** Cipta dalam panel hosting, catat hos, nama, pengguna
+   dan kata laluan.
 
-2. **Import skema.** Buka phpMyAdmin, pilih pangkalan data itu, import
-   `momenkita.sql`. Ini menggantikan `php artisan migrate`, yang tidak boleh
-   dijalankan tanpa SSH.
+2. **Import skema.** phpMyAdmin, pilih pangkalan data itu, import
+   `momenkita.sql`. Ini menggantikan `php artisan migrate`.
 
-3. **Sediakan .env.** Isi `.env.pengeluaran`: butiran pangkalan data dan
-   `APP_URL`. Untuk `APP_KEY`, jalankan pada mesin anda:
+3. **Sediakan .env.** Isi `.env.pengeluaran`. Untuk `APP_KEY`, jalankan pada
+   mesin anda:
 
    ```
    php artisan key:generate --show
    ```
 
-   Salin nilai itu masuk. Untuk kata laluan admin:
+   Untuk kata laluan admin:
 
    ```
    php artisan momenkita:password
    ```
 
-   Namakan fail itu `.env` dan letak di akar akaun.
+   Namakan fail itu `.env`.
 
-4. **Muat naik.** Isi `app-root/` ke akar akaun, isi `htdocs/` ke `htdocs/`.
-   Guna ZIP dan ekstrak melalui pengurus fail hosting kalau boleh; melalui FTP
-   fail demi fail ini mengambil masa lama kerana `vendor/` sahaja mengandungi
-   hampir 9,000 fail.
+4. **Muat naik.** Ekstrak `htdocs.zip` **di dalam** `htdocs`. Jangan letak
+   apa-apa di akar akaun; ia akan dipadam secara automatik.
 
-5. **Kebenaran folder.** Pastikan boleh ditulis (755 atau 775):
-   - `storage/` dan semua isinya
-   - `bootstrap/cache/`
+5. **Letak .env** ke dalam `htdocs/laravel/`.
+
+6. **Kebenaran folder.** Pastikan boleh ditulis (755):
+   - `htdocs/laravel/storage/` dan semua isinya
+   - `htdocs/laravel/bootstrap/cache/`
    - `htdocs/storage/`
 
-6. **SSL.** Hidupkan sijil percuma dalam panel hosting. Ini bukan pilihan:
-   kamera pelayar langsung tidak wujud atas HTTP, jadi tetamu tidak akan dapat
-   mengambil gambar.
+7. **SSL.** Hidupkan sijil percuma. Kamera pelayar tidak wujud atas HTTP,
+   jadi tanpa ini tetamu tidak akan dapat mengambil gambar.
 
-7. **Cron web.** Tetapkan cron hosting memanggil URL `/cron/TOKEN` dalam `.env`
-   anda, setiap 5 minit. Tanpanya muat turun ZIP tidak akan pernah siap kerana
-   tiada pekerja queue yang berjalan.
+8. **Cron web.** Panggil `/cron/TOKEN` setiap 5 minit. Tanpanya muat turun
+   ZIP tidak akan pernah siap.
 
-## Semakan selepas naik
+## Sahkan selepas naik
 
-- Buka laman utama; nama pengantin sepatutnya kelihatan
-- Buka `/admin`, log masuk, pastikan **tiada** amaran merah tentang HTTPS
+Buka alamat ini dalam pelayar:
+
+```
+https://domain-anda/laravel/.env
+```
+
+Anda **mesti** melihat ralat 403 atau 404. Kalau anda nampak isi fail itu,
+`.htaccess` tidak berkuat kuasa dan kata laluan pangkalan data anda sedang
+terdedah kepada sesiapa sahaja. Padam pemasangan itu dan tanya hosting anda
+mengapa `.htaccess` diabaikan.
+
+Kemudian:
+
+- Laman utama memaparkan nama pengantin
+- `/admin` boleh log masuk, dan **tiada** amaran merah tentang HTTPS
 - Muat naik satu gambar dari telefon
-- Tekan "Sediakan ZIP", tunggu cron berjalan, pastikan ia bertukar kepada siap
+- Tekan "Sediakan ZIP", tunggu cron, pastikan ia bertukar kepada siap
 
 ## Had yang perlu diterima
 
-Hosting perkongsian percuma mengehadkan CPU dan permintaan serentak. Untuk
-majlis sebenar dengan ratusan tetamu memuat naik pada masa yang sama, ini akan
-tersekat atau digantung. Gunakan hosting percuma untuk demo; gunakan VPS untuk
-majlis yang dibayar.
+Hosting perkongsian percuma mengehadkan CPU dan permintaan serentak. Majlis
+sebenar dengan ratusan tetamu memuat naik serentak akan tersekat atau
+digantung. Gunakan hosting percuma untuk demo; gunakan VPS untuk majlis yang
+dibayar.
 MD;
     }
 }
