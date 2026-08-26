@@ -100,6 +100,17 @@ class BuildDeployBundle extends Command
             file_put_contents($dir . '/.gitkeep', '');
         }
 
+        /*
+         | Dump pangkalan data membawa jadual settings, yang merujuk gambar
+         | pengantin melalui nama failnya. Tanpa fail itu turut disalin, laman
+         | terbit dengan gerbang kosong dan 404 yang tiada dalam log.
+         */
+        $media = $this->copyTree($base . '/storage/app/public', $htdocs . '/storage');
+
+        if ($media > 0) {
+            $this->components->info('Fail media disalin: ' . $media);
+        }
+
         file_put_contents($outPath . '/.env.pengeluaran', $this->envTemplate());
         file_put_contents($outPath . '/LANGKAH.md', $this->steps());
 
