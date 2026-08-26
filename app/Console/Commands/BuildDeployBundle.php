@@ -75,15 +75,29 @@ class BuildDeployBundle extends Command
         $this->writeIndex($htdocs);
         $this->protectApp($appDir);
 
-        foreach (['photos', 'thumbs', 'majlis'] as $dir) {
-            @mkdir($htdocs . '/storage/' . $dir, 0755, true);
-        }
+        /*
+         | Setiap folder ini mesti wujud sebelum Laravel boleh melayan satu
+         | permintaan pun; tanpa storage/framework/views, Blade tidak boleh
+         | dikompil dan setiap halaman menjadi 500.
+         |
+         | Ia mesti mengandungi sekurang-kurangnya satu fail. Pengekstrak ZIP
+         | melangkau entri folder kosong, jadi folder yang benar-benar kosong
+         | tidak sampai ke pelayan walaupun ia ada di dalam arkib.
+         */
+        $required = [
+            $htdocs . '/storage/photos',
+            $htdocs . '/storage/thumbs',
+            $htdocs . '/storage/majlis',
+            $appDir . '/storage/logs',
+            $appDir . '/storage/app/private/archives',
+            $appDir . '/storage/framework/cache/data',
+            $appDir . '/storage/framework/sessions',
+            $appDir . '/storage/framework/views',
+        ];
 
-        @mkdir($appDir . '/storage/app/private/archives', 0755, true);
-        @mkdir($appDir . '/storage/logs', 0755, true);
-
-        foreach (['cache/data', 'sessions', 'views'] as $dir) {
-            @mkdir($appDir . '/storage/framework/' . $dir, 0755, true);
+        foreach ($required as $dir) {
+            @mkdir($dir, 0755, true);
+            file_put_contents($dir . '/.gitkeep', '');
         }
 
         file_put_contents($outPath . '/.env.pengeluaran', $this->envTemplate());
