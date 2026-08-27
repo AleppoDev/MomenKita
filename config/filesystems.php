@@ -54,12 +54,32 @@ return [
                     return storage_path('app/public');
                 }
 
-                // Terima laluan relatif seperti "htdocs/storage" supaya fail
-                // .env yang sama berfungsi tanpa perlu tahu laluan mutlak
-                // pelayan, yang berbeza bagi setiap akaun hosting.
+                // Terima laluan relatif seperti "../storage" supaya fail .env
+                // yang sama berfungsi tanpa perlu tahu laluan mutlak pelayan,
+                // yang berbeza bagi setiap akaun hosting.
                 $absolute = str_starts_with($root, '/') || preg_match('#^[A-Za-z]:#', $root);
+                $path = $absolute ? $root : base_path($root);
 
-                return $absolute ? $root : base_path($root);
+                /*
+                 | Segmen '..' mesti diselesaikan di sini, bukan diserahkan
+                 | kepada sistem fail. open_basedir pada hosting perkongsian
+                 | menolak sebarang laluan yang membawanya, walaupun laluan
+                 | itu sebenarnya menunjuk ke dalam kawasan yang dibenarkan.
+                 | Kegagalannya muncul sebagai muat naik yang tidak menjadi.
+                 */
+                $path = str_replace(chr(92), '/', $path);
+                $prefix = preg_match('#^([A-Za-z]:)#', $path, $m) ? $m[1] : '';
+                $segments = [];
+
+                foreach (explode('/', substr($path, strlen($prefix))) as $segment) {
+                    if ($segment === '..') {
+                        array_pop($segments);
+                    } elseif ($segment !== '.' && $segment !== '') {
+                        $segments[] = $segment;
+                    }
+                }
+
+                return $prefix . '/' . implode('/', $segments);
             })(),
             // Sengaja relatif kepada akar: gambar kekal betul walaupun laman
             // dicapai melalui domain lain, port lain, atau bertukar ke HTTPS.
